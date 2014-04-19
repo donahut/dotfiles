@@ -1,0 +1,30 @@
+style "xfdesktop-icon-view" {
+
+    XfdesktopIconView::label-alpha = 0
+
+    fg[NORMAL] = "#efefef"
+    fg[SELECTED] = "#efefef"
+    fg[ACTIVE] = "#efefef"
+
+    XfdesktopIconView::shadow-x-offset = 1
+    XfdesktopIconView::shadow-y-offset = 1
+    XfdesktopIconView::shadow-color = "#3c3c3c"
+    XfdesktopIconView::selected-shadow-x-offset = 1
+    XfdesktopIconView::selected-shadow-y-offset = 1
+    XfdesktopIconView::selected-shadow-color = "#3c3c3c"
+
+}
+widget_class "*XfdesktopIconView*" style "xfdesktop-icon-view"
+
+style "xfce-panel-window-style" {
+
+  # Time in miliseconds before the panel will unhide on an enter event
+  XfcePanelWindow::popup-delay = 1000
+ 
+  # Time in miliseconds before the panel will hide on a leave event
+  XfcePanelWindow::popdown-delay = 1
+ 
+  # Size of autohide window in pixels
+  XfcePanelWindow::autohide-size = 1
+}
+class "XfcePanelWindow" style "xfce-panel-window-style"
