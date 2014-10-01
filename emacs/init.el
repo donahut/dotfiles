@@ -32,8 +32,8 @@
 (add-to-list 'custom-theme-load-path "~/dev/tools/emacs-color-themes/themes")
 
 ;;QiChat Mode
-;; (add-to-list 'load-path "~/dev/tools/qichat-mode")
-;; (require 'qichat-mode)
+(add-to-list 'load-path "~/dev/tools/qichat-mode")
+(require 'qichat-mode)
 
 ;; Web-mode
 (require 'web-mode)
@@ -50,6 +50,27 @@
 (remove-hook 'coding-hook 'turn-on-hl-line-mode)
 (remove-hook 'prog-mode-hook 'esk-turn-on-hl-line-mode)
 
+;; ido-mode
+(ido-vertical-mode 1)
+
+(defun badger-ido ()
+  (interactive)
+  (custom-set-faces
+   '(ido-subdir ((t (:foreground "#8AC6F2")))) ;; Face used by ido for highlighting subdirs in the alternatives.
+   '(ido-first-match ((t (:foreground "#84C452")))) ;; Face used by ido for highlighting first match.
+   '(ido-only-match ((t (:foreground "#E2434C")))) ;; Face used by ido for highlighting only match.
+   '(ido-indicator ((t (:foreground "#656868")))) ;; Face used by ido for highlighting its indicators (don't actually use this)
+   '(ido-incomplete-regexp ((t (:foreground "#656868"))))))
+
+(defun mccarthy-ido ()
+  (interactive)
+  (custom-set-faces
+   '(ido-subdir ((t (:foreground "#5b93fc")))) ;; Face used by ido for highlighting subdirs in the alternatives.
+   '(ido-first-match ((t (:foreground "#2c5115")))) ;; Face used by ido for highlighting first match.
+   '(ido-only-match ((t (:foreground "#D14")))) ;; Face used by ido for highlighting only match.
+   '(ido-indicator ((t (:foreground "#555")))) ;; Face used by ido for highlighting its indicators (don't actually use this)
+   '(ido-incomplete-regexp ((t (:foreground "#555"))))))
+
 ;; Autofill
 ;; (auto-fill-mode -1)
 ;; (remove-hook 'text-mode-hook #'turn-on-auto-fill) 
@@ -57,20 +78,27 @@
 ;; Fonts
 (set-face-attribute 'default nil :font "Source Code Pro-10")
 
+(require 'indent-guide)
+(setq indent-guide-char "|")
+(indent-guide-global-mode)
+
 ;; Python Development
-(setq python-check-command "flake8")
-(package-initialize)
-(elpy-enable)
 (add-hook 'python-mode-hook (lambda ()
-                               (elpy-enable)
-                               (delq 'flymake-mode elpy-default-minor-modes)
-                               (elpy-mode)
-                               (auto-complete-mode 1)
-                               (rainbow-delimiters-mode 1)
-                               (elpy-clean-modeline)
-                               (elpy-use-ipython)
-                               (setq flymake-start-syntax-check-on-newline nil)
-                               (setq flymake-no-changes-timeout 60)))
+                              (elpy-enable)
+                              (elpy-mode 1)))
+
+(add-hook 'elpy-mode-hook (lambda ()
+                            (subword-mode 1) ;; camelCase words
+                            (linum-mode 1)   ;; line numbering
+                            (company-mode 1) ;; auto-completion
+                            (rainbow-delimiters-mode 1) ;; colored matching parens
+                            (elpy-use-ipython) 
+                            ;;(fci-mode 1) ;; fill-column-indicator
+                            (highlight-indentation-mode -1) ;; so ugly
+                            (auto-fill-mode -1)))
+(setq jedi:complete-on-dot t)
+(setq-default python-indent-guess-indent-offset nil)
+(setq-default python-indent-offset 4)
 
 ;; set the PYTHONPATH to be what the shell has
 (let ((path-from-shell (shell-command-to-string "echo $PYTHONPATH")))
@@ -83,14 +111,21 @@
 (setq sml/show-remote nil)
 (setq sml/modified-char " x ")
 
+;; Org-Mode
+(setq org-src-fontify-natively t)
+(setq org-html-doctype "html5")
+(setq org-html-html5-fancy t)
+(setq org-html-postamble nil)
+
+;; Lisp Mode
+(dolist (lisp-mode '(scheme emacs-lisp lisp clojure hy))
+  (add-hook (intern (concat (symbol-name lisp-mode) "-mode-hook"))
+            (lambda ()
+              (paredit-mode 1)
+              (rainbow-delimiters-mode 1))))
+
 ;; Theme Changer
 (setq curr-theme nil)
-
-(defun enab-theme (theme)
-  "Disable theme then load it, clearing out state of previous theme"
-  (if curr-theme (disable-theme curr-theme))
-  (setq curr-theme theme) 
-  (load-theme theme t))
 
 (defun cycle-my-theme ()
   "Cycle through a list of themes, my-themes"
@@ -99,12 +134,15 @@
     (disable-theme curr-theme)
     (setq my-themes (append my-themes (list curr-theme))))
   (setq curr-theme (pop my-themes))
-  (load-theme curr-theme t))
-
+  ;;(message "%s" curr-theme)
+  (load-theme curr-theme t)
+  (cond ((eq curr-theme 'badger) (badger-ido))
+        ((eq curr-theme 'mccarthy) (progn 
+                                     (sml/apply-theme 'dark nil t) 
+                                     (mccarthy-ido)))))
 
 (global-set-key [(f9)] 'cycle-my-theme)
-(global-set-key [(f10)] (lambda () (interactive) (sml/apply-theme 'dark)))
 
 ;; Cycle theme list
-(setq my-themes '(mccarthy badger))
+(setq my-themes '(badger mccarthy))
 (cycle-my-theme)
